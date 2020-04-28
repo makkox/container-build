@@ -1,7 +1,5 @@
 FROM centos:7
 
-
-
 MAINTAINER Red hat
 
 LABEL Component="httpd" \
@@ -9,7 +7,7 @@ LABEL Component="httpd" \
       Version="1.0" \
       Release="1"
 LABEL io.k8s.description="A basic apache http server image with ONBUILD instructions" \
-      io.openshift.expose-services="80:http" \
+      io.openshift.expose-services="8080:http" \
       io.openshift.tags="apache,httpd" 
 
 
@@ -23,10 +21,12 @@ RUN yum install -y --setopt=tsflags=nodocs --noplugins httpd && \
 
 ONBUILD COPY src/ ${DOCROOT}/
 
-EXPOSE 80
+EXPOSE 8080
 
-RUN rm -rf /run/httpd && mkdir /run/httpd
+RUN sed -i "s/Listen 80/Listen 8080/g" /etc/httpd/conf/httpd.conf && \
+    chgrp -R 0 /var/log/httpd /var/run/httpd && \
+    chmod -R g=u /var/log/httpd /var/run/httpd
 
-USER root
+USER 1001
 
 CMD /usr/sbin/apachectl -DFOREGROUND
